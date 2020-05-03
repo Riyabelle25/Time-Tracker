@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:async';
+import 'package:timetracker/ui/taskItem.dart';
 
 class taskList extends StatefulWidget {
   @override
@@ -11,24 +11,25 @@ class taskList extends StatefulWidget {
 class _State extends State<taskList> {
 
 
-  Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
+  //List of Widgets -
+
+  static Widget bgImage = Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 0.0 ,0.0, 0.0),
+      child: Image.network(
+        'https://wonderfulengineering.com/wp-content/uploads/2014/10/motivational-wallpaper-2-610x381.jpg',
+        width: double.infinity,
+        height: 50,
+      ));
+
+
+  Widget _buildListItem(BuildContext context, DocumentSnapshot document, int index, int n) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       elevation: 1,
       child: InkWell(
-        child: ListTile(
-          onTap: (){},
-          contentPadding: EdgeInsets.all(10),
-          title: Text(
-            document['name'],
-            style: TextStyle( fontFamily:'Roboto',fontWeight: FontWeight.bold),),
-          subtitle: Text(
-            document['time'], style: TextStyle(fontWeight: FontWeight.w200),
-          ),
-          trailing: Icon(
-            Icons.keyboard_arrow_right,
-            color: Colors.black,
-          ),
+        child: TaskItem(
+            title: "TASK: ${document['name']}",
+            subtitle: " DEADLINE: ${document['time']}"
         ),
       ),
     );
@@ -38,37 +39,31 @@ class _State extends State<taskList> {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
             (context, index) {
-          return _buildListItem(context, snapshot.data.documents[index]);
+              return _buildListItem(context, snapshot.data.documents[index], index,snapshot.data.documents.length);
         },
         childCount: snapshot.data.documents.length,
+
       ),
     );
   }
+
+  //Main UI begins-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.brown[100],
       body: CustomScrollView(
-
         slivers: <Widget>[
           SliverAppBar(
-            backgroundColor: Colors.deepPurple[900],
+            backgroundColor: Colors.blue[800],
             pinned: true,
             snap: true,
             floating: true,
-            expandedHeight: 400,
+            expandedHeight: 215.3,
 
             flexibleSpace:FlexibleSpaceBar(
-                centerTitle: true,
-                title: Text(
-                  "TASKLIST ",
-                   style: TextStyle(
-                   fontSize: 40,
-                   fontWeight: FontWeight.w500,
-            ),
-          ),
-                  background: Image.network("http://wonderfulengineering.com/56-free-motivational-wallpapers-for-download-that-will-make-your-day/")
+              background: bgImage,
           ),
           ),
 
@@ -87,7 +82,7 @@ class _State extends State<taskList> {
                       heightFactor: 20,
                       widthFactor: 10,
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(Colors.deepPurple[600]),
+                        valueColor: AlwaysStoppedAnimation(Colors.blue[800]),
                       ),
                     ),
                   );
@@ -103,7 +98,7 @@ class _State extends State<taskList> {
       floatingActionButton: new FloatingActionButton(
           elevation: 0.0,
           child: new Icon(Icons.add,color: Colors.brown[100],),
-          backgroundColor: Colors.deepPurple[800],
+          backgroundColor: Colors.blue[600],
           onPressed: (){
             Navigator.push(
               context,
@@ -131,7 +126,7 @@ class _UploadFormFieldState extends State<UploadFormField> {
       home: new Scaffold(
         backgroundColor: Colors.brown[100],
         appBar: new AppBar(
-          title: new Text('Upload'),
+          title: new Text('ADD TASKS '),
         ),
         body: new SingleChildScrollView(
           child: new Container(
@@ -147,6 +142,7 @@ class _UploadFormFieldState extends State<UploadFormField> {
       ),
     );
   }
+
   Widget FormUI() {
     return new Column(
       children: <Widget>[
@@ -163,41 +159,26 @@ class _UploadFormFieldState extends State<UploadFormField> {
             onSaved: (String val) {
               time = val;
             },
-          keyboardType: TextInputType.datetime
         ),
         new SizedBox(height: 15.0),
-        new RaisedButton(onPressed: _sendToServer, child: new Text('Upload'),
+        new RaisedButton(onPressed: _sendToServer , child: new Text('Upload'),
         )
       ],
     );
   }
   String validateName(String value) {
-    String pattern = r' (^[a-zA-Z ]*$)';
-    RegExp regExp = new RegExp(pattern);
     if (value.length == 0){
       return 'Title is required';
-
-    } else if (!regExp.hasMatch(value)) {
-      return "Title must be a-z and A-Z";
     }
-
     return null;
   }
 
   String validateDeadline (String value) {
-    String pattern = r' (^[a-zA-Z ]*$)';
-    RegExp regExp = new RegExp(pattern);
     if (value.length == 0){
-      return 'Author is required';
-
-    } else if (!regExp.hasMatch(value)) {
-      return "Author must be a-z and A-Z";
+      return 'Date is required';
     }
-
     return null;
   }
-
-
   _sendToServer(){
     if (_key.currentState.validate() ){
       //No error in validator
@@ -212,6 +193,5 @@ class _UploadFormFieldState extends State<UploadFormField> {
         _validate = true;
       });
     }
-
   }
 }
